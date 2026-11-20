@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Discount &amp; Margin Calculator</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -116,6 +116,25 @@ tr.is-max td{background:var(--accent-soft)}
 .cheat span{color:var(--muted);font-size:13px}
 .note{color:var(--muted);font-size:13px;margin:10px 0 0;max-width:70ch}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+/* Mobile + no-zoom */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+html,body{overflow-x:hidden;max-width:100%}
+*,*::before,*::after{box-sizing:border-box}
+.grid>*,.wrap>*{min-width:0}
+select,input,textarea{font-size:16px!important}
+button{touch-action:manipulation}
+@media (max-width:760px){
+  .wrap{padding:16px 12px calc(32px + env(safe-area-inset-bottom));gap:14px}
+  h1{font-size:22px}
+  .card{padding:16px}
+  .kpis{gap:8px}
+  .kpi .v{font-size:19px}
+  .kpi.main .v{font-size:24px}
+  .cheat{grid-template-columns:1fr 1fr}
+  th,td{padding-left:6px;padding-right:6px;font-size:13px}
+  .btn{width:100%}
+}
+@media (min-width:1200px){.wrap{max-width:1160px}}
 </style>
 </head>
 <body>
