@@ -24,9 +24,9 @@
   --ink:#f4f5f8;
   --muted:#8a90a3;
   --line:#242939;
-  --accent:#8b7bff;
-  --accent2:#5de0c4;
-  --accent-soft:rgba(139,123,255,.14);
+  --accent:#8e7cff;
+  --accent-grad:linear-gradient(135deg,#8E7CFF 0%,#5B4BE8 55%,#3B2DB5 100%);
+  --accent-soft:rgba(142,124,255,.14);
   --good:#4ade80;
   --good-bg:rgba(74,222,128,.12);
   --warn:#fbbf24;
@@ -42,8 +42,7 @@
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
 html,body{margin:0;overflow-x:hidden;max-width:100%}
 body{
-  background:radial-gradient(1200px 600px at 85% -10%,rgba(139,123,255,.18),transparent 60%),
-             radial-gradient(900px 500px at -10% 10%,rgba(93,224,196,.08),transparent 60%),var(--bg);
+  background:radial-gradient(1100px 520px at 80% -15%,rgba(91,75,232,.22),transparent 60%),var(--bg);
   background-attachment:fixed;
   color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5;
   font-feature-settings:"tnum" 1,"ss01" 1;-webkit-font-smoothing:antialiased;min-height:100vh
@@ -54,8 +53,8 @@ body{
 /* App bar */
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 2px 6px}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
-.logo{width:42px;height:42px;border-radius:14px;flex:none;display:grid;place-items:center;
-  background:linear-gradient(135deg,#8b7bff,#5de0c4);color:#08090d;font-weight:800;font-size:20px;box-shadow:0 8px 24px rgba(139,123,255,.35)}
+.logo{width:42px;height:42px;border-radius:12px;flex:none;overflow:hidden;box-shadow:0 6px 20px rgba(91,75,232,.4)}
+.logo svg{display:block;width:100%;height:100%}
 .brand-t{min-width:0}
 .hello{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em}
 h1{font-size:19px;line-height:1.2;margin:0;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -82,7 +81,7 @@ select{appearance:none;-webkit-appearance:none;background:var(--surface2) url("d
 
 .mode{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:999px}
 .mode button{flex:1;font:inherit;font-size:14px;font-weight:700;border:0;background:transparent;color:var(--muted);padding:10px 8px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s}
-.mode button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.mode button[aria-pressed="true"]{background:var(--accent-grad);color:#fff;box-shadow:0 4px 14px rgba(91,75,232,.35)}
 .mode button:focus-visible,.btn:focus-visible,.ladder button:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* Results */
@@ -96,9 +95,9 @@ select{appearance:none;-webkit-appearance:none;background:var(--surface2) url("d
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .kpi{background:var(--surface2);border-radius:18px;padding:14px 16px}
 .kpi.main{grid-column:1/-1;position:relative;overflow:hidden;padding:22px 22px 20px;border-radius:22px;
-  background:linear-gradient(135deg,#6d5cff 0%,#8b7bff 45%,#4fd1b5 120%);color:#fff;box-shadow:0 18px 40px rgba(109,92,255,.35)}
-.kpi.main::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12)}
-.kpi.main::before{content:"";position:absolute;right:40px;bottom:-90px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.08)}
+  background:radial-gradient(120% 100% at 10% 0%,rgba(255,255,255,.22),transparent 55%),var(--accent-grad);color:#fff;box-shadow:0 18px 40px rgba(91,75,232,.35)}
+.kpi.main::after{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;border:1px solid rgba(255,255,255,.18)}
+.kpi.main::before{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;border:1px solid rgba(255,255,255,.14)}
 .kpi .k{font-size:12px;color:var(--muted);font-weight:600}
 .kpi .v{font-size:21px;font-weight:800;margin-top:4px;letter-spacing:-.02em}
 .kpi .f{font-size:12px;color:var(--muted);margin-top:2px}
@@ -106,9 +105,9 @@ select{appearance:none;-webkit-appearance:none;background:var(--surface2) url("d
 .kpi.main .v{font-size:36px;color:#fff;letter-spacing:-.03em}
 
 .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
-.btn{font:inherit;font-weight:700;font-size:15px;padding:13px 20px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);cursor:pointer;flex:1;transition:transform .1s}
+.btn{font:inherit;font-weight:700;font-size:15px;padding:13px 20px;border-radius:999px;border:0;background:var(--accent-grad);color:#fff;cursor:pointer;flex:1;box-shadow:0 8px 22px rgba(91,75,232,.3);transition:transform .1s}
 .btn:active{transform:scale(.98)}
-.btn.ghost{background:var(--surface2);color:var(--ink)}
+.btn.ghost{background:var(--surface2);color:var(--ink);box-shadow:none}
 .toast{font-size:13px;color:var(--good);font-weight:600;width:100%;text-align:center}
 .toast:empty{display:none}
 
@@ -121,7 +120,7 @@ th{font-size:12px;color:var(--muted);font-weight:600;padding-top:0;padding-botto
 td{background:var(--surface2);font-weight:600}
 td:first-child{border-radius:14px 0 0 14px}
 td:last-child{border-radius:0 14px 14px 0}
-tbody tr:hover td{background:#232839}
+tbody tr:hover td{background:#232741}
 tr.is-max td{background:var(--accent-soft)}
 .pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
 .pill.ok{background:var(--good-bg);color:var(--good)}
@@ -155,7 +154,7 @@ button{touch-action:manipulation}
 <div class="wrap">
   <header>
     <div class="brand">
-      <div class="logo" aria-hidden="true">%</div>
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8E7CFF"/><stop offset=".55" stop-color="#5B4BE8"/><stop offset="1" stop-color="#3B2DB5"/></linearGradient><radialGradient id="lgs" cx=".2" cy=".1" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="100" height="100" rx="0" fill="url(#lgg)"/><rect width="100" height="100" rx="0" fill="url(#lgs)"/><g fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"><line x1="65" y1="33" x2="35" y2="67"/><circle cx="36" cy="36" r="7.5"/><circle cx="64" cy="64" r="7.5"/></g></svg></div>
       <div class="brand-t">
         <div class="hello">Quote smarter</div>
         <h1>Margin Calc</h1>
