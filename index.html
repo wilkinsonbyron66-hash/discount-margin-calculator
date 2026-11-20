@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discount &amp; Margin Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a ledger-style tool — inputs on the left, the answer on the right, a discount ladder below. */
+:root{
+  --bg:#eef2f1;
+  --surface:#ffffff;
+  --ink:#13232b;
+  --muted:#5d6f76;
+  --line:#d3dcdb;
+  --accent:#0f5c4d;
+  --accent-soft:#e1efeb;
+  --good:#17804f;
+  --good-bg:#e3f4ea;
+  --warn:#a76800;
+  --warn-bg:#fbf0d9;
+  --bad:#b3261e;
+  --bad-bg:#fbe4e2;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --radius:10px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1619;--surface:#142226;--ink:#e6efee;--muted:#93a6ab;--line:#24383d;
+    --accent:#4fc2a4;--accent-soft:#163a33;
+    --good:#5ad19a;--good-bg:#123326;--warn:#f0b54a;--warn-bg:#3a2c10;--bad:#ff8a80;--bad-bg:#3d1916;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1619;--surface:#142226;--ink:#e6efee;--muted:#93a6ab;--line:#24383d;
+  --accent:#4fc2a4;--accent-soft:#163a33;
+  --good:#5ad19a;--good-bg:#123326;--warn:#f0b54a;--warn-bg:#3a2c10;--bad:#ff8a80;--bad-bg:#3d1916;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 48px;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-size:26px;line-height:1.2;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.currency{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
+select,input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px}
+select{padding:8px 10px}
+.grid{display:grid;grid-template-columns:1fr 1.15fr;gap:20px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px;font-weight:600}
+.fields{display:grid;gap:14px}
+.field label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.field .hint{font-weight:400;color:var(--muted);font-size:13px}
+.inputwrap{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow:hidden}
+.inputwrap:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.inputwrap span{display:flex;align-items:center;padding:0 12px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-num);font-size:13px;font-weight:600;min-width:52px;justify-content:center}
+.inputwrap input{border:0;border-radius:0;flex:1;min-width:0;padding:11px 12px;font-family:var(--font-num);font-size:17px;font-variant-numeric:tabular-nums;outline:none}
+.mode{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:8px;border:1px solid var(--line)}
+.mode button{flex:1;font:inherit;font-size:13px;font-weight:600;border:0;background:transparent;color:var(--muted);padding:7px 8px;border-radius:6px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.mode button:focus-visible,.btn:focus-visible,.ladder button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.status{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:8px;font-weight:600;margin-bottom:16px}
+.status .dot{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none}
+.status.ok{background:var(--good-bg);color:var(--good)}
+.status.tight{background:var(--warn-bg);color:var(--warn)}
+.status.bad{background:var(--bad-bg);color:var(--bad)}
+.status small{display:block;font-weight:400;color:var(--ink);opacity:.8}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi.main{grid-column:1/-1;background:var(--accent-soft);border-color:transparent}
+.kpi .k{font-size:13px;color:var(--muted)}
+.kpi .v{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:22px;font-weight:600;margin-top:2px}
+.kpi.main .v{font-size:30px;color:var(--accent)}
+.kpi .f{font-size:12px;color:var(--muted);font-family:var(--font-num);margin-top:2px}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
+.btn{font:inherit;font-weight:600;font-size:14px;padding:9px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.toast{font-size:13px;color:var(--good)}
+
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+td{font-family:var(--font-num)}
+tr.is-max td{background:var(--accent-soft)}
+.pill{display:inline-block;font-family:var(--font-body);font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px}
+.pill.ok{background:var(--good-bg);color:var(--good)}
+.pill.tight{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.ladder{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;color:var(--muted);font-size:13px}
+.ladder button{font:inherit;font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+
+.cheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cheat div{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.cheat b{display:block;font-family:var(--font-num);font-size:16px}
+.cheat span{color:var(--muted);font-size:13px}
+.note{color:var(--muted);font-size:13px;margin:10px 0 0;max-width:70ch}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Discount &amp; Margin Calculator</h1>
+      <p class="sub">Enter your buying price and the margin you need. See the lowest price you can quote and how much discount you can give.</p>
+    </div>
+    <div class="currency">
+      <label for="currency">Currency</label>
+      <select id="currency">
+        <option>AED</option><option>USD</option><option>EUR</option><option>SAR</option><option>GBP</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="in-h">
+      <h2 id="in-h">Your numbers</h2>
+      <div class="fields">
+        <div class="field">
+          <label for="cost">Buying price <span class="hint">(our cost, per unit)</span></label>
+          <div class="inputwrap"><span class="cur">AED</span><input id="cost" type="number" inputmode="decimal" min="0" step="0.01" value="140"></div>
+        </div>
+        <div class="field">
+          <label for="list">List / quote price <span class="hint">(before discount)</span></label>
+          <div class="inputwrap"><span class="cur">AED</span><input id="list" type="number" inputmode="decimal" min="0" step="0.01" value="200"></div>
+        </div>
+        <div class="field">
+          <label for="margin">Minimum margin we need</label>
+          <div class="inputwrap"><span>%</span><input id="margin" type="number" inputmode="decimal" min="0" max="99" step="0.5" value="15"></div>
+        </div>
+        <div class="field">
+          <label for="qty">Quantity</label>
+          <div class="inputwrap"><span>QTY</span><input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1"></div>
+        </div>
+        <div class="field">
+          <label id="mode-l">Discount to offer</label>
+          <div class="mode" role="group" aria-labelledby="mode-l">
+            <button type="button" id="m-pct" aria-pressed="true">By %</button>
+            <button type="button" id="m-price" aria-pressed="false">By sell price</button>
+          </div>
+        </div>
+        <div class="field" id="f-pct">
+          <label for="disc">Discount %</label>
+          <div class="inputwrap"><span>%</span><input id="disc" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="10"></div>
+        </div>
+        <div class="field" id="f-price" hidden>
+          <label for="sell">Sell price per unit</label>
+          <div class="inputwrap"><span class="cur">AED</span><input id="sell" type="number" inputmode="decimal" min="0" step="0.01" value="180"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="out-h" aria-live="polite">
+      <h2 id="out-h">The answer</h2>
+      <div id="status" class="status ok"><span class="dot"></span><div><span id="status-t">Safe to offer</span><small id="status-s"></small></div></div>
+      <div class="kpis">
+        <div class="kpi main"><div class="k">Lowest price you can quote (floor)</div><div class="v" id="o-floor">–</div><div class="f" id="o-floor-f"></div></div>
+        <div class="kpi"><div class="k">Max discount allowed</div><div class="v" id="o-max">–</div><div class="f" id="o-max-f"></div></div>
+        <div class="kpi"><div class="k">Sell price after discount</div><div class="v" id="o-sell">–</div><div class="f" id="o-sell-f"></div></div>
+        <div class="kpi"><div class="k">Margin after discount</div><div class="v" id="o-margin">–</div><div class="f" id="o-margin-f"></div></div>
+        <div class="kpi"><div class="k">Profit</div><div class="v" id="o-profit">–</div><div class="f" id="o-profit-f"></div></div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" id="copy">Copy summary</button>
+        <button class="btn ghost" type="button" id="usemax">Use max discount</button>
+        <span class="toast" id="toast" role="status"></span>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="lad-h">
+    <h2 id="lad-h">Discount ladder (for negotiating)</h2>
+    <div class="ladder">Tap a row to use it:
+      <span id="ladder-hint"></span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Discount</th><th>Sell price / unit</th><th>Total</th><th>Margin</th><th>Profit</th><th>Status</th></tr></thead>
+        <tbody id="ladder"></tbody>
+      </table>
+    </div>
+    <p class="note">Start lower on the ladder and keep room to move. Never quote below the floor price.</p>
+  </section>
+
+  <section class="card" aria-labelledby="ch-h">
+    <h2 id="ch-h">Quick margin cheat sheet (from your buying price)</h2>
+    <div class="cheat" id="cheat"></div>
+    <p class="note">Margin is profit as a % of the <b>sell price</b>. To get the sell price for a margin, divide the buying price by (1 − margin). Multiplying cost by 1.20 gives a 20% markup, which is only a 16.7% margin.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const ids = ['cost','list','margin','qty','disc','sell','currency'];
+  let mode = 'pct';
+
+  // Pure calculations
+  function calc(cost, list, minM, disc){
+    const floor = minM < 1 ? cost / (1 - minM) : NaN;
+    const maxDisc = list > 0 ? 1 - floor / list : NaN;
+    const sell = list * (1 - disc);
+    const margin = sell > 0 ? (sell - cost) / sell : NaN;
+    return {floor, maxDisc, sell, margin, profit: sell - cost};
+  }
+
+  function num(id){ const v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+  function cur(){ return $('currency').value; }
+  function money(v){ if(!isFinite(v)) return '–'; return cur() + ' ' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function pct(v){ if(!isFinite(v)) return '–'; return (v*100).toFixed(1) + '%'; }
+  function state(margin, minM){
+    if(!isFinite(margin) || margin < minM - 1e-9) return 'bad';
+    if(margin < minM + 0.03) return 'tight';
+    return 'ok';
+  }
+  const label = {ok:'OK', tight:'Tight', bad:'Below floor'};
+
+  function save(){ try{ const o={mode}; ids.forEach(i=>o[i]=$(i).value); localStorage.setItem('disc-calc',JSON.stringify(o)); }catch(e){} }
+  function load(){ try{ const o=JSON.parse(localStorage.getItem('disc-calc')||'null'); if(!o) return; ids.forEach(i=>{ if(o[i]!=null) $(i).value=o[i]; }); if(o.mode) setMode(o.mode,false); }catch(e){} }
+
+  function setMode(m, run=true){
+    mode = m;
+    $('m-pct').setAttribute('aria-pressed', m==='pct');
+    $('m-price').setAttribute('aria-pressed', m==='price');
+    $('f-pct').hidden = m!=='pct';
+    $('f-price').hidden = m!=='price';
+    if(run) render();
+  }
+
+  function currentDisc(list){
+    if(mode==='price'){ const s=num('sell'); return list>0 ? 1 - s/list : 0; }
+    return num('disc')/100;
+  }
+
+  let lastSummary = '';
+  function render(){
+    document.querySelectorAll('.cur').forEach(e=>e.textContent=cur());
+    const cost=num('cost'), list=num('list'), minM=num('margin')/100, qty=Math.max(1,Math.round(num('qty')));
+    const disc=currentDisc(list);
+    const r=calc(cost,list,minM,disc);
+
+    $('o-floor').textContent = money(r.floor);
+    $('o-floor-f').textContent = `${cost.toFixed(2)} ÷ (1 − ${(minM*100).toFixed(1)}%)`;
+    $('o-max').textContent = isFinite(r.maxDisc) ? (r.maxDisc<0 ? 'None' : pct(r.maxDisc)) : '–';
+    $('o-max-f').textContent = r.maxDisc<0 ? 'List price is already below the floor' : 'off the list price';
+    $('o-sell').textContent = money(r.sell);
+    $('o-sell-f').textContent = `${pct(disc)} off · total ${money(r.sell*qty)}`;
+    $('o-margin').textContent = pct(r.margin);
+    $('o-margin-f').textContent = `target ${pct(minM)}`;
+    $('o-profit').textContent = money(r.profit*qty);
+    $('o-profit-f').textContent = `${money(r.profit)} per unit × ${qty}`;
+
+    const s = state(r.margin,minM);
+    const st=$('status'); st.className='status '+s;
+    $('status-t').textContent = s==='ok' ? 'Safe to offer' : s==='tight' ? 'OK, but close to your minimum' : 'Too much discount: below your floor price';
+    $('status-s').textContent = s==='bad'
+      ? `Lowest you can go is ${money(r.floor)} (max ${pct(Math.max(0,r.maxDisc))} off).`
+      : `You still have ${pct(Math.max(0,r.maxDisc-disc))} more discount room before the floor.`;
+
+    // ladder
+    const steps=[0,0.025,0.05,0.075,0.10,0.125,0.15,0.20,0.25];
+    if(isFinite(r.maxDisc) && r.maxDisc>0) steps.push(Math.floor(r.maxDisc*1000)/1000);
+    const uniq=[...new Set(steps.map(x=>+x.toFixed(4)))].sort((a,b)=>a-b);
+    const tb=$('ladder'); tb.innerHTML='';
+    uniq.forEach(d=>{
+      const x=calc(cost,list,minM,d); const ss=state(x.margin,minM);
+      const isMax = isFinite(r.maxDisc) && Math.abs(d - Math.floor(r.maxDisc*1000)/1000) < 1e-6;
+      const tr=document.createElement('tr'); if(isMax) tr.className='is-max';
+      tr.tabIndex=0; tr.style.cursor='pointer';
+      tr.innerHTML=`<td>${pct(d)}${isMax?' <span class="pill ok">max</span>':''}</td><td>${money(x.sell)}</td><td>${money(x.sell*qty)}</td><td>${pct(x.margin)}</td><td>${money(x.profit*qty)}</td><td><span class="pill ${ss}">${label[ss]}</span></td>`;
+      const use=()=>{ setMode('pct',false); $('disc').value=(d*100).toFixed(1); render(); };
+      tr.addEventListener('click',use);
+      tr.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); use(); }});
+      tb.appendChild(tr);
+    });
+
+    // cheat sheet
+    const ch=$('cheat'); ch.innerHTML='';
+    [0.10,0.15,0.20,0.25,0.30].forEach(m=>{
+      const d=document.createElement('div');
+      d.innerHTML=`<span>${Math.round(m*100)}% margin</span><b>${money(cost/(1-m))}</b><span>÷ ${(1-m).toFixed(2)}</span>`;
+      ch.appendChild(d);
+    });
+
+    lastSummary =
+`Buying price: ${money(cost)}
+List price: ${money(list)}
+Minimum margin: ${pct(minM)}
+Floor price: ${money(r.floor)}
+Max discount: ${isFinite(r.maxDisc)?pct(Math.max(0,r.maxDisc)):'–'}
+Discount offered: ${pct(disc)}
+Sell price: ${money(r.sell)} x ${qty} = ${money(r.sell*qty)}
+Margin: ${pct(r.margin)} (${label[s]})
+Profit: ${money(r.profit*qty)}`;
+    save();
+  }
+
+  ids.forEach(i=>$(i).addEventListener('input',render));
+  $('m-pct').addEventListener('click',()=>{ const l=num('list'); $('disc').value=(Math.max(0,currentDisc(l))*100).toFixed(1); setMode('pct'); });
+  $('m-price').addEventListener('click',()=>{ const l=num('list'); $('sell').value=(l*(1-currentDisc(l))).toFixed(2); setMode('price'); });
+  $('usemax').addEventListener('click',()=>{
+    const cost=num('cost'), list=num('list'), minM=num('margin')/100;
+    const r=calc(cost,list,minM,0);
+    if(!isFinite(r.maxDisc)) return;
+    setMode('pct',false);
+    $('disc').value=(Math.max(0,Math.floor(r.maxDisc*1000)/10)).toFixed(1);
+    render();
+  });
+  $('copy').addEventListener('click',async()=>{
+    const t=$('toast');
+    try{ await navigator.clipboard.writeText(lastSummary); t.textContent='Copied.'; }
+    catch(e){ t.textContent='Copy is blocked here. Select the numbers and copy them by hand.'; }
+    setTimeout(()=>t.textContent='',2500);
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
